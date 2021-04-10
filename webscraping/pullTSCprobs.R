@@ -22,7 +22,7 @@
 
 pullTSCprobs <- function(){
   
-  message("Downloading and parsing data... This may take a long time as the file is >500MB.")
+  message("Downloading data... This may take a long time as the file is >500MB.")
   
   # --------------- Set up dictionary -------------
   
@@ -38,17 +38,15 @@ pullTSCprobs <- function(){
                      "RightWhaleCalls", "ProximalPhalanxOutlineCorrect", "PowerCons",
                      "PhalangesOutlinesCorrect", "MotorImagery", "MoteStrain", 
                      "MiddlePhalanxOutlineCorrect", "Lightning2", "ItalyPowerDemand", 
-                     "HouseTwenty", "Herring", "Heartbeat", 
+                     "HouseTwenty", "Herring", 
                      "HandOutlines", "Ham", "GunPointOldVersusYoung", 
                      "GunPointMaleVersusFemale", "GunPointAgeSpan", "GunPoint", 
                      "FreezerSmallTrain", "FreezerRegularTrain", "FordB",
-                     "FordA", "FingerMovements", "FaceDetection", 
-                     "EyesOpenShut", "ElectricDeviceDetection", "ECGFiveDays", 
+                     "FordA", "ECGFiveDays", 
                      "ECG200", "Earthquakes", "DodgerLoopWeekend", 
                      "DodgerLoopGame", "DistalPhalanxOutlineCorrect", "Computers", 
-                     "Coffee", "Chinatown", "CatsDogs", 
-                     "BirdChicken", "BinaryHeartbeat", "BeetleFly",
-                     "AsphaltRegularityCoordinates", "AsphaltRegularity")
+                     "Coffee", "Chinatown", 
+                     "BirdChicken", "BeetleFly")
   
   # --------------- Webscrape the data ------------
   
@@ -58,13 +56,15 @@ pullTSCprobs <- function(){
   # --------------- Parse into problems -----------
   
   problemStorage <- list()
+  message("Parsing individual datasets...")
   
   for(i in twoclassprobs){
     
-    path <- paste0(i,"/")
+    tryCatch({
+    
+    path <- paste0("Univariate_arff/",i,"/")
     
     # Retrieve TRAIN and TEST files
-    # NOTE: Use approach here https://stackoverflow.com/questions/36385170/using-r-to-download-and-extract-zip-file-that-contains-a-folder
     
     train <- foreign::read.arff(unz(temp, paste0(path,i,"_TRAIN.arff"))) %>%
       mutate(id = row_number()) %>%
@@ -72,17 +72,18 @@ pullTSCprobs <- function(){
     
     test <- foreign::read.arff(unz(temp, paste0(path,i,"_TEST.arff"))) %>%
       mutate(id = row_number()) %>%
-      mutate(set_split = "Train")
+      mutate(set_split = "Test")
     
     # Merge
     
     tmp <- bind_rows(train, test)
     
     problemStorage[[i]] <- tmp
+    
+    }, error = function(e){cat("ERROR :",conditionMessage(e), "\n")})
   }
-  
-  allProbs <- rbindlist(problemStorage, use.names = TRUE)
-  return(allProbs)
+  return(problemStorage)
 }
 
 allProbs <- pullTSCprobs()
+save(allProbs, file = "data/allProbs.Rda") # Store as download is very large

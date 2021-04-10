@@ -137,6 +137,10 @@ y_pred_svm <- predict(svm.mod, newdata = test_wide[,-1])
 tab_svm <- table(test_wide$target, y_pred_svm)
 caret::confusionMatrix(tab_svm)
 
+y_pred_gp <- predict(gp.mod, newdata = test_wide[,-1])
+tab_gp <- table(test_wide$target, y_pred_gp)
+caret::confusionMatrix(tab_gp)
+
 # Make variable importance plot
 
 CairoPNG("output/varimp.png", 800, 600)
