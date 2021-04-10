@@ -11,10 +11,11 @@
 
 # ----------------------- Read in data --------------------
 
-# Load in .arff file and wrangle into tidy format
-# NOTE: THIS SHOULD BE ADAPTED TO WEBSCRAPE RATHER THAN USE DOWNLOADED FILES
+load("data/allProbs.Rda")
 
-train <- foreign::read.arff("data/WormsTwoClass_TRAIN.arff") %>%
+train <- allProbs$WormsTwoClass %>%
+  filter(set_split == "Train") %>%
+  dplyr::select(-c(set_split)) %>%
   mutate(id = row_number()) %>%
   pivot_longer(cols = att1:att900, names_to = "timepoint", values_to = "value") %>%
   mutate(timepoint = gsub("att", "\\1", timepoint)) %>%
@@ -22,13 +23,17 @@ train <- foreign::read.arff("data/WormsTwoClass_TRAIN.arff") %>%
   mutate(id = as.character(id)) %>%
   mutate(id = as.integer(id))
 
-test <- foreign::read.arff("data/WormsTwoClass_TEST.arff") %>%
+test <- allProbs$WormsTwoClass %>%
+  filter(set_split == "Test") %>%
+  dplyr::select(-c(set_split)) %>%
   mutate(id = row_number()) %>%
   pivot_longer(cols = att1:att900, names_to = "timepoint", values_to = "value") %>%
   mutate(timepoint = gsub("att", "\\1", timepoint)) %>%
   mutate(timepoint = as.numeric(timepoint)) %>%
   mutate(id = as.character(id)) %>%
   mutate(id = as.integer(id))
+
+rm(allProbs)
 
 # ----------------------- Calculate features --------------
 
@@ -136,10 +141,6 @@ caret::confusionMatrix(tab_rf)
 y_pred_svm <- predict(svm.mod, newdata = test_wide[,-1])
 tab_svm <- table(test_wide$target, y_pred_svm)
 caret::confusionMatrix(tab_svm)
-
-y_pred_gp <- predict(gp.mod, newdata = test_wide[,-1])
-tab_gp <- table(test_wide$target, y_pred_gp)
-caret::confusionMatrix(tab_gp)
 
 # Make variable importance plot
 
