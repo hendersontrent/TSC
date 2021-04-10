@@ -47,15 +47,8 @@ test_feats <- calculate_features(data = test, id_var = "id", time_var = "timepoi
 
 # Normalisation
 
-train_norm1 <- train_feats %>%
-  dplyr::group_by(names) %>%
-  dplyr::mutate(values = (values-mean(values, na.rm = TRUE))/sd(values, na.rm = TRUE)) %>%
-  dplyr::ungroup()
-
-test_norm1 <- test_feats %>%
-  dplyr::group_by(names) %>%
-  dplyr::mutate(values = (values-mean(values, na.rm = TRUE))/sd(values, na.rm = TRUE)) %>%
-  dplyr::ungroup()
+train_norm1 <- normalise_feature_frame(train_feats, names_var = "names", values_var = "values", method = "z-score")
+test_norm1 <- normalise_feature_frame(test_feats, names_var = "names", values_var = "values", method = "z-score")
 
 # Rejoin group labels
 
